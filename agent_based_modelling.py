@@ -45,6 +45,9 @@ class ShopperAgent(mesa.Agent):
             self.model.total_revenue += price
             self.model.total_profit += (price - item["unit_cost"])
             self.model.items_sold += 1
+            tier = item["shelf_tier"]
+            self.model.sales_by_tier[tier] = self.model.sales_by_tier.get(tier, 0) + 1
+            self.model.sales_by_promo["promo" if item["has_promo"] else "no_promo"] += 1
 
 
 class StoreModel(mesa.Model):
@@ -55,12 +58,32 @@ class StoreModel(mesa.Model):
         self.total_revenue = 0.0
         self.total_profit = 0.0
         self.items_sold = 0
+        self.sales_by_tier = {}
+        self.sales_by_promo = {"promo": 0, "no_promo": 0}
+
 
         for _ in range(self.num_shoppers):
             ShopperAgent(self)
 
     def step(self):
         self.agents.shuffle_do("step")
+
+def print_sales_breakdown(model):
+    total = model.items_sold
+    if total == 0:
+        print("No items sold, no breakdown to show.")
+        return
+
+    print(f"\n--- Sales by Shelf Tier (total {total} items) ---")
+    for tier, count in sorted(model.sales_by_tier.items(), key=lambda x: -x[1]):
+        print(f"  {tier:<12s}: {count:3d}  ({count / total * 100:5.1f}%)")
+
+    print(f"\n--- Sales by Promotion (total {total} items) ---")
+    labels = {"promo": "With Promo", "no_promo": "No Promo"}
+    for key in ("promo", "no_promo"):
+        count = model.sales_by_promo[key]
+        print(f"  {labels[key]:<12s}: {count:3d}  ({count / total * 100:5.1f}%)")
+
 
 if __name__ == "__main__":
 # Sample data-driven inventory mimicking HK Circle K field observations
@@ -87,3 +110,4 @@ if __name__ == "__main__":
     print(f"Total Revenue:  HK${model.total_revenue:.2f}")
     print(f"Total Profit:   HK${model.total_profit:.2f}")
     print(f"Total Items Sold: {model.items_sold}")
+    print_sales_breakdown(model)
