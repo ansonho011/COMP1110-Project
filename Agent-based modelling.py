@@ -25,11 +25,11 @@ class ShopperAgent(mesa.Agent):
         # 1. Shelf Placement Weightage (M_tier)
         if item["shelf_tier"] == "eye_level":
             tier_weight = 1.35  # ~35% sales uplift at eye-level
+        elif item["shelf_tier"] == "chest_level":
+            tier_weight = 1.25  # ~25% sales uplift at chest-level
         elif item["shelf_tier"] == "waist_level":
-            tier_weight = 1.25  # ~25% sales uplift at waist-level
-        elif item["shelf_tier"] == "knee_level":
-            tier_weight = 1.10  # ~10% sales uplift at knee-level
-        else:  # stoop_level
+            tier_weight = 1.10  # ~10% sales uplift at waist-level
+        else:  # stoop_level or knee_level
             tier_weight = 0.80  # Lower visibility penalty zone
 
         # 2. Promotional Sensitivity Modifier
